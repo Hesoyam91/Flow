@@ -2,7 +2,7 @@
 
 **Interactive diagrams, moodboards and rich notes in one desktop app.**
 
-Build a diagram, attach as much writing as you want to any element, and open it again with a right-click. Flow is made for the moment when a box on a diagram is not enough: your *"Business 1"* node can hold a full description, task lists, links to other nodes and images, without leaving the canvas.
+Build a diagram, attach as much writing as you want to any element, and open it again with a right-click. Flow is made for the moment when a box on a diagram is not enough: your nodes can hold a full description, task lists, links to other nodes and images, without leaving the canvas.
 
 🌐 English · [Español](README.es.md)
 
