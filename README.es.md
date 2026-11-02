@@ -2,7 +2,7 @@
 
 **Diagramas interactivos, moodboards y notas enriquecidas en una sola app de escritorio.**
 
-Crea un diagrama, adjunta todo el texto que quieras a cualquier elemento y ábrelo de nuevo con un clic derecho. Flow está pensado para cuando una caja en un diagrama no es suficiente: tu nodo *"Negocio 1"* puede contener una descripción completa, listas de tareas, enlaces a otros nodos e imágenes, sin salir del lienzo.
+Crea un diagrama, adjunta todo el texto que quieras a cualquier elemento y ábrelo de nuevo con un clic derecho. Flow está pensado para cuando una caja en un diagrama no es suficiente: tu nodo puede contener una descripción completa, listas de tareas, enlaces a otros nodos e imágenes, sin salir del lienzo.
 
 🌐 [English](README.md) · Español
 
