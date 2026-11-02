@@ -1,0 +1,246 @@
+{
+  "version": 2,
+  "activeId": "main",
+  "boards": [
+    {
+      "id": "main",
+      "name": "Launch",
+      "nodes": [
+        {
+          "id": "sec1",
+          "type": "section",
+          "zIndex": -1,
+          "position": {
+            "x": -60,
+            "y": -150
+          },
+          "style": {
+            "width": 1080,
+            "height": 520
+          },
+          "data": {
+            "label": "Product launch",
+            "color": "#fed7aa",
+            "note": "",
+            "fontSize": 20,
+            "body": ""
+          }
+        },
+        {
+          "id": "title",
+          "type": "text",
+          "position": {
+            "x": -20,
+            "y": -110
+          },
+          "style": {
+            "width": 420,
+            "height": 60
+          },
+          "data": {
+            "label": "Launch plan",
+            "color": "transparent",
+            "note": "",
+            "fontSize": 36
+          }
+        },
+        {
+          "id": "kick",
+          "type": "sticky",
+          "position": {
+            "x": 0,
+            "y": 20
+          },
+          "style": {
+            "width": 200,
+            "height": 110
+          },
+          "data": {
+            "label": "Kickoff",
+            "color": "#fde68a",
+            "note": "<p>Team meeting and goals for the quarter.</p>"
+          }
+        },
+        {
+          "id": "design",
+          "type": "sticky",
+          "position": {
+            "x": 290,
+            "y": 20
+          },
+          "style": {
+            "width": 200,
+            "height": 110
+          },
+          "data": {
+            "label": "Design",
+            "color": "#bfdbfe",
+            "note": "<p>Wireframes, branding and the first prototype.</p>"
+          }
+        },
+        {
+          "id": "build",
+          "type": "sticky",
+          "position": {
+            "x": 580,
+            "y": 20
+          },
+          "style": {
+            "width": 200,
+            "height": 110
+          },
+          "data": {
+            "label": "Build",
+            "color": "#bbf7d0",
+            "note": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><label><input type=\"checkbox\" checked><span></span></label><div><p>Set up the project</p></div></li><li data-type=\"taskItem\" data-checked=\"true\"><label><input type=\"checkbox\" checked><span></span></label><div><p>Core features</p></div></li><li data-type=\"taskItem\" data-checked=\"false\"><label><input type=\"checkbox\"><span></span></label><div><p>Polish and tests</p></div></li></ul>",
+            "links": [
+              "kick"
+            ]
+          }
+        },
+        {
+          "id": "ready",
+          "type": "box",
+          "position": {
+            "x": 600,
+            "y": 200
+          },
+          "style": {
+            "width": 170,
+            "height": 110
+          },
+          "data": {
+            "label": "Ready?",
+            "color": "#ddd6fe",
+            "shape": "diamond",
+            "note": ""
+          }
+        },
+        {
+          "id": "ship",
+          "type": "box",
+          "position": {
+            "x": 860,
+            "y": 215
+          },
+          "style": {
+            "width": 130,
+            "height": 80
+          },
+          "data": {
+            "label": "Release",
+            "color": "#99f6e4",
+            "shape": "pill",
+            "note": "<p>Publish and announce.</p>"
+          }
+        },
+        {
+          "id": "sec2",
+          "type": "section",
+          "zIndex": -1,
+          "position": {
+            "x": -60,
+            "y": 430
+          },
+          "style": {
+            "width": 520,
+            "height": 250
+          },
+          "data": {
+            "label": "Ideas",
+            "color": "#c4b5fd",
+            "note": "",
+            "fontSize": 20,
+            "body": "<p>Things to explore later</p><ul><li><p>Dark mode for the website</p></li><li><p>Short demo video</p></li><li><p>Community feedback form</p></li></ul>"
+          }
+        },
+        {
+          "id": "note",
+          "type": "sticky",
+          "position": {
+            "x": 600,
+            "y": 470
+          },
+          "style": {
+            "width": 230,
+            "height": 120
+          },
+          "data": {
+            "label": "Tip",
+            "color": "#fbcfe8",
+            "note": "<p>Right-click any element to open its full note.</p>"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "e1",
+          "source": "kick",
+          "target": "design",
+          "sourceHandle": "right",
+          "targetHandle": "left",
+          "type": "label",
+          "data": {
+            "path": "smoothstep",
+            "arrow": "end",
+            "dashed": false
+          }
+        },
+        {
+          "id": "e2",
+          "source": "design",
+          "target": "build",
+          "sourceHandle": "right",
+          "targetHandle": "left",
+          "type": "label",
+          "data": {
+            "path": "smoothstep",
+            "arrow": "end",
+            "dashed": false
+          }
+        },
+        {
+          "id": "e3",
+          "source": "build",
+          "target": "ready",
+          "sourceHandle": "bottom",
+          "targetHandle": "top",
+          "type": "label",
+          "data": {
+            "path": "smoothstep",
+            "arrow": "end",
+            "dashed": false
+          }
+        },
+        {
+          "id": "e4",
+          "source": "ready",
+          "target": "ship",
+          "sourceHandle": "right",
+          "targetHandle": "left",
+          "type": "label",
+          "data": {
+            "path": "smoothstep",
+            "arrow": "end",
+            "dashed": false,
+            "label": "yes"
+          }
+        },
+        {
+          "id": "e5",
+          "source": "ready",
+          "target": "design",
+          "sourceHandle": "left",
+          "targetHandle": "bottom",
+          "type": "label",
+          "data": {
+            "path": "bezier",
+            "arrow": "end",
+            "dashed": true,
+            "label": "no"
+          }
+        }
+      ]
+    }
+  ]
+}

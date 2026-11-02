@@ -1,0 +1,171 @@
+{
+  "app": {
+    "unsaved": "Sin guardar",
+    "defaultFileName": "diagrama",
+    "insert": "＋ Insertar",
+    "pen": "✎ Lápiz",
+    "penTip": "Dibujar a mano",
+    "eraser": "⌫ Borrador",
+    "eraserTip": "Borrar trazos",
+    "search": "Buscar (Ctrl+F)",
+    "filter": "◐ Filtrar",
+    "export": "⤓ Exportar",
+    "themeToDay": "Cambiar a atardecer",
+    "themeToNight": "Cambiar a noche",
+    "undo": "Deshacer (Ctrl+Z)",
+    "redo": "Rehacer (Ctrl+Shift+Z)",
+    "new": "Nuevo",
+    "open": "Abrir",
+    "save": "Guardar",
+    "language": "Idioma",
+    "newBoard": "Nuevo tablero",
+    "closeBoard": "Cerrar tablero",
+    "unnamedBoard": "Sin nombre",
+    "hint": "Arrastra para seleccionar · Espacio o botón central para mover · Doble click: renombrar · Click derecho: abrir nota"
+  },
+  "defaults": {
+    "board": "Tablero {{n}}",
+    "sample": "Negocio 1",
+    "box": "Nuevo elemento",
+    "diamond": "Decisión",
+    "ellipse": "Inicio",
+    "hexagon": "Proceso",
+    "text": "Texto",
+    "sticky": "Nota",
+    "section": "Sección"
+  },
+  "menu": {
+    "box": "Caja",
+    "diamond": "Rombo (decisión)",
+    "ellipse": "Elipse",
+    "hexagon": "Hexágono",
+    "text": "Texto",
+    "sticky": "Nota adhesiva",
+    "section": "Sección",
+    "image": "Imagen",
+    "allColors": "Todos los colores",
+    "exportPng": "Imagen PNG",
+    "exportSvg": "Imagen SVG",
+    "exportPdf": "Documento PDF"
+  },
+  "status": {
+    "desktopOnlySave": "Guardado solo disponible en la app de escritorio",
+    "saved": "Guardado",
+    "opened": "Abierto",
+    "invalidFile": "Archivo no válido",
+    "exporting": "Exportando…",
+    "exported": "Exportado",
+    "exportError": "Error al exportar",
+    "autosaveFull": "Autoguardado lleno: guarda el archivo con Guardar",
+    "distributeMin": "Selecciona al menos 3 elementos para distribuir"
+  },
+  "confirm": {
+    "closeBoard": "¿Cerrar \"{{name}}\"? Se eliminará su contenido.",
+    "newDoc": "¿Crear un diagrama nuevo? Se perderán los cambios no guardados."
+  },
+  "edge": {
+    "title": "Conector",
+    "dashed": "Punteada",
+    "path": { "straight": "Recta", "smoothstep": "Ángulo", "bezier": "Curva" },
+    "arrow": { "none": "Sin punta", "end": "Flecha al final", "start": "Flecha al inicio", "both": "Flecha doble" }
+  },
+  "align": {
+    "selected": "{{count}} seleccionados",
+    "left": "Alinear a la izquierda",
+    "hcenter": "Centrar horizontalmente",
+    "right": "Alinear a la derecha",
+    "top": "Alinear arriba",
+    "vcenter": "Centrar verticalmente",
+    "bottom": "Alinear abajo",
+    "hdist": "Distribuir horizontalmente",
+    "vdist": "Distribuir verticalmente"
+  },
+  "pen": {
+    "color": "Color",
+    "thickness": "Grosor",
+    "done": "Listo",
+    "auto": "Automático (según tema)",
+    "eraserHelp": "Arrastra sobre los trazos para borrarlos"
+  },
+  "editor": {
+    "placeholder": "Escribe aquí todo lo que quieras sobre este elemento…",
+    "close": "Cerrar (Esc)",
+    "autosave": "Guardado automático",
+    "titlePlaceholder": "Título",
+    "settings": "Ajustes",
+    "color": "Color",
+    "noFill": "Sin fondo",
+    "textSize": "Tamaño del texto",
+    "shape": "Forma",
+    "image": "Imagen",
+    "changeImage": "Cambiar imagen",
+    "addImage": "Añadir imagen",
+    "remove": "Quitar",
+    "links": "Enlaces a otros elementos",
+    "goTo": "Ir al elemento",
+    "removeLink": "Quitar enlace",
+    "linkTo": "＋ Enlazar a…",
+    "untitled": "(sin título)",
+    "delete": "Eliminar elemento",
+    "linkPlaceholder": "https://… (http, https o mailto)",
+    "apply": "Aplicar",
+    "cancel": "Cancelar",
+    "tb": {
+      "bold": "Negrita",
+      "italic": "Cursiva",
+      "h1": "Título",
+      "h2": "Subtítulo",
+      "bullets": "• Lista",
+      "bulletsTip": "Lista",
+      "numbers": "1. Lista",
+      "numbersTip": "Lista numerada",
+      "tasks": "☑ Tareas",
+      "tasksTip": "Lista de tareas",
+      "quote": "Cita",
+      "link": "Enlace (clic de nuevo para quitarlo)",
+      "image": "Insertar imagen"
+    }
+  },
+  "nodes": {
+    "untitled": "Sin título",
+    "hasNote": "Tiene nota",
+    "noImage": "Sin imagen",
+    "section": "Sección",
+    "note": "Nota",
+    "text": "Texto",
+    "bodyPlaceholder": "Escribe aquí… (listas, tareas, negritas)"
+  },
+  "shapes": {
+    "rect": "Rectángulo",
+    "round": "Redondeado",
+    "pill": "Píldora",
+    "ellipse": "Elipse",
+    "diamond": "Rombo (decisión)",
+    "hexagon": "Hexágono"
+  },
+  "colors": {
+    "ffffff": "Blanco",
+    "fde68a": "Amarillo",
+    "fed7aa": "Naranja",
+    "fecaca": "Rojo",
+    "fbcfe8": "Rosa",
+    "ddd6fe": "Violeta",
+    "bfdbfe": "Azul",
+    "99f6e4": "Turquesa",
+    "bbf7d0": "Verde",
+    "e5e7eb": "Gris"
+  },
+  "errors": {
+    "notImage": "El archivo no es una imagen",
+    "imageTooLarge": "La imagen supera los 15 MB",
+    "imageRead": "No se pudo leer la imagen",
+    "nothingToExport": "No hay nada que exportar",
+    "exportDesktopOnly": "Exportar solo está disponible en la app de escritorio"
+  },
+  "crash": {
+    "title": "Algo salió mal",
+    "body": "Flow encontró un error inesperado. Tus archivos .flow guardados no se han modificado.",
+    "retry": "Reintentar",
+    "reset": "Descartar autoguardado y reiniciar"
+  }
+}

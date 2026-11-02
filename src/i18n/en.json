@@ -1,0 +1,171 @@
+{
+  "app": {
+    "unsaved": "Unsaved",
+    "defaultFileName": "diagram",
+    "insert": "＋ Insert",
+    "pen": "✎ Pen",
+    "penTip": "Draw freehand",
+    "eraser": "⌫ Eraser",
+    "eraserTip": "Erase strokes",
+    "search": "Search (Ctrl+F)",
+    "filter": "◐ Filter",
+    "export": "⤓ Export",
+    "themeToDay": "Switch to sunset",
+    "themeToNight": "Switch to night",
+    "undo": "Undo (Ctrl+Z)",
+    "redo": "Redo (Ctrl+Shift+Z)",
+    "new": "New",
+    "open": "Open",
+    "save": "Save",
+    "language": "Language",
+    "newBoard": "New board",
+    "closeBoard": "Close board",
+    "unnamedBoard": "Unnamed",
+    "hint": "Drag to select · Space or middle button to pan · Double-click: rename · Right-click: open note"
+  },
+  "defaults": {
+    "board": "Board {{n}}",
+    "sample": "Business 1",
+    "box": "New element",
+    "diamond": "Decision",
+    "ellipse": "Start",
+    "hexagon": "Process",
+    "text": "Text",
+    "sticky": "Note",
+    "section": "Section"
+  },
+  "menu": {
+    "box": "Box",
+    "diamond": "Diamond (decision)",
+    "ellipse": "Ellipse",
+    "hexagon": "Hexagon",
+    "text": "Text",
+    "sticky": "Sticky note",
+    "section": "Section",
+    "image": "Image",
+    "allColors": "All colors",
+    "exportPng": "PNG image",
+    "exportSvg": "SVG image",
+    "exportPdf": "PDF document"
+  },
+  "status": {
+    "desktopOnlySave": "Saving is only available in the desktop app",
+    "saved": "Saved",
+    "opened": "Opened",
+    "invalidFile": "Invalid file",
+    "exporting": "Exporting…",
+    "exported": "Exported",
+    "exportError": "Export failed",
+    "autosaveFull": "Autosave is full: save the file with Save",
+    "distributeMin": "Select at least 3 elements to distribute"
+  },
+  "confirm": {
+    "closeBoard": "Close \"{{name}}\"? Its content will be deleted.",
+    "newDoc": "Create a new diagram? Unsaved changes will be lost."
+  },
+  "edge": {
+    "title": "Connector",
+    "dashed": "Dashed",
+    "path": { "straight": "Straight", "smoothstep": "Elbow", "bezier": "Curved" },
+    "arrow": { "none": "No arrowhead", "end": "Arrow at end", "start": "Arrow at start", "both": "Double arrow" }
+  },
+  "align": {
+    "selected": "{{count}} selected",
+    "left": "Align left",
+    "hcenter": "Center horizontally",
+    "right": "Align right",
+    "top": "Align top",
+    "vcenter": "Center vertically",
+    "bottom": "Align bottom",
+    "hdist": "Distribute horizontally",
+    "vdist": "Distribute vertically"
+  },
+  "pen": {
+    "color": "Color",
+    "thickness": "Thickness",
+    "done": "Done",
+    "auto": "Automatic (follows theme)",
+    "eraserHelp": "Drag over strokes to erase them"
+  },
+  "editor": {
+    "placeholder": "Write everything you want about this element here…",
+    "close": "Close (Esc)",
+    "autosave": "Autosaved",
+    "titlePlaceholder": "Title",
+    "settings": "Settings",
+    "color": "Color",
+    "noFill": "No fill",
+    "textSize": "Text size",
+    "shape": "Shape",
+    "image": "Image",
+    "changeImage": "Change image",
+    "addImage": "Add image",
+    "remove": "Remove",
+    "links": "Links to other elements",
+    "goTo": "Go to element",
+    "removeLink": "Remove link",
+    "linkTo": "＋ Link to…",
+    "untitled": "(untitled)",
+    "delete": "Delete element",
+    "linkPlaceholder": "https://… (http, https or mailto)",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "tb": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "h1": "Heading",
+      "h2": "Subheading",
+      "bullets": "• List",
+      "bulletsTip": "Bulleted list",
+      "numbers": "1. List",
+      "numbersTip": "Numbered list",
+      "tasks": "☑ Tasks",
+      "tasksTip": "Task list",
+      "quote": "Quote",
+      "link": "Link (click again to remove it)",
+      "image": "Insert image"
+    }
+  },
+  "nodes": {
+    "untitled": "Untitled",
+    "hasNote": "Has a note",
+    "noImage": "No image",
+    "section": "Section",
+    "note": "Note",
+    "text": "Text",
+    "bodyPlaceholder": "Write here… (lists, tasks, bold)"
+  },
+  "shapes": {
+    "rect": "Rectangle",
+    "round": "Rounded",
+    "pill": "Pill",
+    "ellipse": "Ellipse",
+    "diamond": "Diamond (decision)",
+    "hexagon": "Hexagon"
+  },
+  "colors": {
+    "ffffff": "White",
+    "fde68a": "Yellow",
+    "fed7aa": "Orange",
+    "fecaca": "Red",
+    "fbcfe8": "Pink",
+    "ddd6fe": "Violet",
+    "bfdbfe": "Blue",
+    "99f6e4": "Turquoise",
+    "bbf7d0": "Green",
+    "e5e7eb": "Gray"
+  },
+  "errors": {
+    "notImage": "The file is not an image",
+    "imageTooLarge": "The image exceeds 15 MB",
+    "imageRead": "Could not read the image",
+    "nothingToExport": "Nothing to export",
+    "exportDesktopOnly": "Exporting is only available in the desktop app"
+  },
+  "crash": {
+    "title": "Something went wrong",
+    "body": "Flow ran into an unexpected error. Your saved .flow files have not been modified.",
+    "retry": "Retry",
+    "reset": "Discard autosave and restart"
+  }
+}
