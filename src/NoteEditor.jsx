@@ -72,8 +72,9 @@ function Toolbar({ editor }) {
 export default function NoteEditor({ node, allNodes, onChange, onDelete, onClose, onJump }) {
   const { t } = useTranslation()
   const { data } = node
-  // En una sección, el editor modifica el mismo texto que se ve dentro del recuadro.
-  const field = node.type === 'section' ? 'body' : 'note'
+  // La ventana es una expansión de la tarjeta: tiene su propio título (noteTitle) y contenido (note),
+  // independientes del título y la descripción que se ven en el lienzo.
+  const field = 'note'
   const links = (data.links || []).map((id) => allNodes.find((n) => n.id === id)).filter(Boolean)
   const candidates = allNodes.filter((n) => n.id !== node.id && !(data.links || []).includes(n.id))
   const nodeName = (n) => n.data.label || t('editor.untitled')
@@ -100,11 +101,12 @@ export default function NoteEditor({ node, allNodes, onChange, onDelete, onClose
         <div className="note-main">
           <div className="note-topbar">
             <button className="icon-btn" onClick={onClose} title={t('editor.close')}>←</button>
+            <span className="expanded-label">{t('editor.expanded', { title: data.label || t('editor.untitled') })}</span>
             <span className="autosave">{t('editor.autosave')}</span>
           </div>
           <div className="note-scroll">
             {data.image && <img className="cover" src={data.image} alt="" />}
-            <input className="note-title" value={data.label || ''} placeholder={t('editor.titlePlaceholder')} onChange={(e) => onChange({ label: e.target.value })} />
+            <input className="note-title" value={data.noteTitle || ''} placeholder={data.label || t('editor.titlePlaceholder')} onChange={(e) => onChange({ noteTitle: e.target.value })} />
             <Toolbar editor={editor} />
             <EditorContent editor={editor} className="note-body" />
           </div>
@@ -146,7 +148,7 @@ export default function NoteEditor({ node, allNodes, onChange, onDelete, onClose
               </div>
             </>
           )}
-          {node.type !== 'section' && (
+          {node.type !== 'section' && node.type !== 'column' && (
             <>
               <h4>{t('editor.image')}</h4>
               <div className="shape-options">

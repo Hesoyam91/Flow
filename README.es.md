@@ -7,22 +7,26 @@ Crea un diagrama, adjunta todo el texto que quieras a cualquier elemento y ábre
 🌐 [English](README.md) · Español
 
 <p align="center">
-  <img src="docs/screenshot-sunset.png" alt="Flow con el tema atardecer" width="49%">
+  <img src="docs/screenshot-light.png" alt="Flow con el tema claro" width="49%">
   <img src="docs/screenshot-night.png" alt="Flow con el tema noche" width="49%">
 </p>
 
 ## Características
 
-- **Diagramas interactivos.** Clic derecho sobre cualquier elemento para abrir un editor tipo publicación con título, portada, encabezados, listas, tareas, citas, enlaces e imágenes. Los elementos muestran una insignia cuando tienen nota (y el progreso de tareas, como `☑ 2/5`).
+- **Diagramas interactivos.** Cada tarjeta tiene su propio título y descripción corta, que se editan en el lienzo (doble clic). Clic derecho sobre cualquier elemento abre una *nota ampliada* independiente, tipo publicación, con su propio título, portada, encabezados, listas, tareas, citas, enlaces e imágenes: la tarjeta se mantiene ordenada y el detalle queda a un clic. Los elementos muestran una insignia cuando tienen nota ampliada (y el progreso de tareas, como `☑ 2/5`).
 - **Lienzo infinito** con cajas, formas (redondeada, píldora, elipse, rombo, hexágono), texto libre, notas adhesivas, imágenes y **secciones** (contenedores con título y texto propio que mueven su contenido).
+- **Tableros Scrum como Trello.** Columnas To Do, In Progress y Done: arrastra las tarjetas entre ellas, reordénalas, añade nuevas y deja que crezcan con su texto. Cualquier nota adhesiva se puede soltar en una columna, y cualquier tarjeta se puede sacar.
+- **Plantillas** de tablero Scrum, diagrama de flujo, mapa mental, línea de tiempo y moodboard.
 - **Conectores** rectos, en ángulo o curvos, sin punta, con una o dos puntas, continuos o punteados, con etiquetas editables.
 - **Dibujo a mano alzada** con colores y grosor, y borrador. Los trazos son elementos normales: se mueven, escalan y se deshacen.
 - **Moodboards.** Pega imágenes desde el portapapeles o añádelas desde el disco (se comprimen automáticamente).
 - **Varios tableros** en pestañas, guardados juntos en un único archivo `.flow`.
 - **Productividad.** Deshacer/rehacer, copiar/pegar/duplicar, selección múltiple, alinear y distribuir, búsqueda (`Ctrl+F`) en títulos y notas, filtro por color, enlaces entre elementos.
 - **Exportar** todo el tablero a PNG, SVG o PDF.
-- **Dos temas**: un *atardecer* cálido y una *noche* estrellada.
-- **Interfaz en inglés y español** (sigue el idioma del sistema; cámbialo con el botón 🌐).
+- **Dos temas**: uno *claro* y suave, y una *noche* estrellada, ambos con los colores del logo.
+- **Preferencias** para ocultar el minimapa, los controles de zoom, las instrucciones, los puntos de fondo o las estrellas, ajustar a la cuadrícula y más.
+- **Pregunta antes de salir** si tienes cambios sin guardar en un archivo.
+- **Interfaz en inglés y español** (sigue el idioma del sistema; cámbialo en Preferencias).
 - **Local y privado.** Todo se guarda en tu equipo. Sin cuentas ni red.
 
 ## Descarga
@@ -52,7 +56,7 @@ El instalador no está firmado, así que Windows SmartScreen puede mostrar un av
 
 | Acción | Cómo |
 | --- | --- |
-| Abrir la nota de un elemento | Clic derecho |
+| Abrir la nota ampliada de un elemento | Clic derecho |
 | Renombrar en el lugar | Doble clic |
 | Seleccionar varios | Arrastrar sobre el lienzo, o `Shift`+clic |
 | Mover el lienzo | `Espacio` + arrastrar, o botón central |
@@ -69,6 +73,10 @@ El instalador no está firmado, así que Windows SmartScreen puede mostrar un av
 npm test            # pruebas unitarias (sanitización, guardias de IPC, utilidades, alineación)
 npm run test:e2e    # compila y maneja la app real: seguridad, flujos de interfaz, exportación
 ```
+
+## Diagnóstico
+
+Si la app llegara a caerse, escribe un registro local (que no se envía a ningún sitio) en `%APPDATA%/flow/logs/flow.log` en Windows, y los informes de fallo nativos en la carpeta `Crashpad` contigua. Adjúntalos al reportar un problema.
 
 ## Seguridad
 

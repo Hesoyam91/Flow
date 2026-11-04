@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 // items: [{ label, icon, onSelect }] o 'separator'
-export default function Dropdown({ label, items, align = 'left' }) {
+export default function Dropdown({ label, items, align = 'left', active = false }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -19,7 +19,7 @@ export default function Dropdown({ label, items, align = 'left' }) {
 
   return (
     <div className="dropdown" ref={ref}>
-      <button onClick={() => setOpen((o) => !o)}>{label} ▾</button>
+      <button className={active ? 'active' : ''} onClick={() => setOpen((o) => !o)}>{label} ▾</button>
       {open && (
         <div className={`menu ${align === 'right' ? 'menu-right' : ''}`}>
           {items.map((item, i) =>

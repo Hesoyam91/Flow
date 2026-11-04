@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useRef } from 'react'
-import { Handle, Position, NodeResizer, useReactFlow } from '@xyflow/react'
+import { Handle, Position, NodeResizer, NodeResizeControl, ResizeControlVariant, useReactFlow, useStore } from '@xyflow/react'
 import { useTranslation } from 'react-i18next'
 import { ActionsContext } from './context.js'
 import { useEditor, EditorContent } from '@tiptap/react'
@@ -38,15 +38,17 @@ function NoteBadge({ data }) {
 
 // Etiqueta editable en el mismo lugar (doble click → data.editing). El texto se actualiza
 // en el nodo mientras se escribe; el textarea no tiene caja y hereda tipografía y alineación.
-function EditableLabel({ id, data, placeholder, className }) {
+// `field` es el dato que se edita ('label' = título, 'desc' = descripción) y `editingKey` el indicador de edición.
+function EditableLabel({ id, data, placeholder, className, field = 'label', editingKey = 'editing' }) {
   const { updateNodeData } = useReactFlow()
   const { takeSnapshot } = useContext(ActionsContext)
   const ref = useRef(null)
   const session = useRef({ original: '', snapped: false, closed: false })
-  const label = data.label || ''
+  const label = data[field] || ''
+  const editing = !!data[editingKey]
 
   useEffect(() => {
-    if (!data.editing) return
+    if (!editing) return
     session.current = { original: label, snapped: false, closed: false }
     // React Flow mantiene un nodo recién creado oculto hasta medirlo, y focus() falla en un elemento oculto:
     // se reintenta hasta que el foco se aplica.
@@ -61,13 +63,13 @@ function EditableLabel({ id, data, placeholder, className }) {
     }
     timer = setTimeout(tryFocus, 0)
     return () => clearTimeout(timer)
-  }, [data.editing]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editing]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!data.editing) return <div className={`${className} label-text`}>{label || placeholder}</div>
+  if (!editing) return <div className={`${className} label-text ${label ? '' : 'is-empty'}`}>{label || placeholder}</div>
 
   const finish = (patch = {}) => {
     session.current.closed = true
-    updateNodeData(id, { ...patch, editing: false })
+    updateNodeData(id, { ...patch, [editingKey]: false })
   }
 
   return (
@@ -82,7 +84,7 @@ function EditableLabel({ id, data, placeholder, className }) {
             takeSnapshot()
             session.current.snapped = true
           }
-          updateNodeData(id, { label: e.target.value })
+          updateNodeData(id, { [field]: e.target.value })
         }}
         onBlur={() => !session.current.closed && finish()}
         onKeyDown={(e) => {
@@ -91,16 +93,39 @@ function EditableLabel({ id, data, placeholder, className }) {
             e.preventDefault()
             finish()
           }
-          if (e.key === 'Escape') finish({ label: session.current.original })
+          if (e.key === 'Escape') finish({ [field]: session.current.original })
         }}
       />
     </div>
   )
 }
 
+// Con el zoom muy alejado un elemento mide pocos píxeles y su contenido no se lee: se dibuja solo un bloque de color
+// (y no se decodifican las imágenes). Los puntos de conexión se mantienen para que las flechas sigan dibujándose.
+const LOW_DETAIL_PX = 70
+
+function useLowDetail(id, editing) {
+  const { forceDetail } = useContext(ActionsContext)
+  return useStore((s) => {
+    if (editing || forceDetail) return false
+    const n = s.nodeLookup.get(id)
+    const w = n?.measured?.width ?? n?.width ?? n?.initialWidth ?? 200
+    return w * s.transform[2] < LOW_DETAIL_PX
+  })
+}
+
 export function BoxNode({ id, data, selected }) {
   const { t } = useTranslation()
   const shape = data.shape || 'round'
+  const low = useLowDetail(id, data.editing)
+  if (low) {
+    const color = data.color || '#fff'
+    return (
+      <div className={`box-node lod shape-${shape}`} style={{ background: color, '--lod-bg': color }}>
+        <Handles />
+      </div>
+    )
+  }
   return (
     <div className={`box-node shape-${shape}`} style={{ background: data.color || '#fff' }}>
       <Resizer selected={selected} minWidth={100} minHeight={50} />
@@ -119,6 +144,14 @@ export function BoxNode({ id, data, selected }) {
 export function TextNode({ id, data, selected }) {
   const { t } = useTranslation()
   const transparent = !data.color || data.color === 'transparent'
+  const low = useLowDetail(id, data.editing)
+  if (low) {
+    return (
+      <div className="text-node lod" style={{ background: data.color || 'transparent' }}>
+        <Handles />
+      </div>
+    )
+  }
   return (
     <div className="text-node" style={{ background: data.color || 'transparent', color: transparent ? 'var(--text)' : '#111', fontSize: data.fontSize || 18 }}>
       <Resizer selected={selected} minWidth={60} minHeight={30} />
@@ -129,21 +162,50 @@ export function TextNode({ id, data, selected }) {
   )
 }
 
+// La tarjeta tiene título y descripción propios (se editan con doble click). El contenido ampliado
+// de la ventana de clic derecho (data.note) es independiente de lo que se ve aquí.
 export function StickyNode({ id, data, selected }) {
   const { t } = useTranslation()
-  const text = stripHtml(data.note)
+  const { updateNodeData } = useReactFlow()
+  // Las tarjetas de un tablero miden según su texto: necesitan su contenido para no colapsar.
+  const isCard = !!data.columnId
+  const low = useLowDetail(id, data.editing || data.editingDesc || isCard)
+  if (low) {
+    return (
+      <div className="sticky-node lod" style={{ background: data.color || '#fde68a' }}>
+        <Handles />
+      </div>
+    )
+  }
   return (
-    <div className="sticky-node" style={{ background: data.color || '#fde68a' }}>
-      <Resizer selected={selected} minWidth={140} minHeight={100} />
+    <div className={`sticky-node ${isCard ? 'kanban-card' : ''}`} style={{ background: data.color || '#fde68a' }}>
+      {!isCard && <Resizer selected={selected} minWidth={140} minHeight={100} />}
       <Handles />
       <EditableLabel id={id} data={data} className="node-label sticky-title" placeholder={t('nodes.note')} />
-      {text && <div className="sticky-body">{text}</div>}
+      <div
+        className="sticky-desc"
+        onDoubleClick={(e) => {
+          e.stopPropagation()
+          updateNodeData(id, { editingDesc: true })
+        }}
+      >
+        <EditableLabel id={id} data={data} field="desc" editingKey="editingDesc" className="sticky-body" placeholder={t('nodes.descPlaceholder')} />
+      </div>
+      <NoteBadge data={data} />
     </div>
   )
 }
 
 export function ImageNode({ id, data, selected }) {
   const { t } = useTranslation()
+  const low = useLowDetail(id, data.editing)
+  if (low) {
+    return (
+      <div className="image-node lod">
+        <Handles />
+      </div>
+    )
+  }
   return (
     <div className="image-node">
       <Resizer selected={selected} minWidth={80} minHeight={80} keepAspectRatio />
@@ -268,4 +330,43 @@ export function SectionNode({ id, data, selected }) {
   )
 }
 
-export const nodeTypes = { box: BoxNode, sticky: StickyNode, image: ImageNode, text: TextNode, draw: DrawNode, section: SectionNode }
+// Columna de un tablero tipo Trello: se arrastra por su cabecera y las tarjetas se acomodan solas (ver kanban.js).
+export function ColumnNode({ id, data, selected }) {
+  const { t } = useTranslation()
+  const { updateNodeData } = useReactFlow()
+  const { takeSnapshot, addCard } = useContext(ActionsContext)
+  const count = useStore((s) => {
+    let total = 0
+    for (const n of s.nodeLookup.values()) if (n.data?.columnId === id) total++
+    return total
+  })
+  const color = data.color && data.color !== 'transparent' ? data.color : '#bfdbfe'
+  return (
+    <div className="column-node" style={{ background: `color-mix(in srgb, ${color} var(--column-mix), var(--panel))`, borderColor: color }}>
+      {selected && <NodeResizeControl position="right" variant={ResizeControlVariant.Line} resizeDirection="horizontal" minWidth={220} maxWidth={640} onResizeStart={takeSnapshot} />}
+      <div
+        className="column-header"
+        style={{ background: color }}
+        onDoubleClick={(e) => {
+          e.stopPropagation()
+          updateNodeData(id, { editing: true })
+        }}
+      >
+        <EditableLabel id={id} data={data} className="column-title" placeholder={t('nodes.column')} />
+        <span className="column-count">{count}</span>
+      </div>
+      <button
+        className="column-add nodrag nopan"
+        onClick={(e) => {
+          e.stopPropagation()
+          addCard(id)
+        }}
+      >
+        {t('nodes.addCard')}
+      </button>
+      <NoteBadge data={data} />
+    </div>
+  )
+}
+
+export const nodeTypes = { box: BoxNode, sticky: StickyNode, image: ImageNode, text: TextNode, draw: DrawNode, section: SectionNode, column: ColumnNode }

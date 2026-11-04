@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { isTrustedUrl, PathGrants, parseSavePayload, parseExportPayload, ensureExtension, isSafeExternalUrl } = require('../electron/guards.cjs')
+const { isTrustedUrl, PathGrants, parseSavePayload, parseExportPayload, parseLogPayload, ensureExtension, isSafeExternalUrl } = require('../electron/guards.cjs')
 
 const prod = { dev: false, devUrl: 'http://localhost:5173', appUrl: 'file:///D:/Flow/dist/index.html' }
 const dev = { ...prod, dev: true }
@@ -87,5 +87,13 @@ describe('ensureExtension / isSafeExternalUrl', () => {
     expect(isSafeExternalUrl('javascript:alert(1)')).toBe(false)
     expect(isSafeExternalUrl('ms-msdt:/id')).toBe(false)
     expect(isSafeExternalUrl('no es url')).toBe(false)
+  })
+})
+
+describe('parseLogPayload', () => {
+  it('solo acepta texto y lo acota', () => {
+    expect(parseLogPayload('error x')).toBe('error x')
+    expect(parseLogPayload('a'.repeat(10000)).length).toBe(4000)
+    for (const bad of [null, undefined, 5, {}, ['a']]) expect(() => parseLogPayload(bad)).toThrow()
   })
 })

@@ -17,6 +17,11 @@ const doc = {
   }],
 }
 
+const wide = {
+  version: 2, activeId: 'w',
+  boards: [{ id: 'w', name: 'Ancho', nodes: Array.from({ length: 300 }, (_, i) => ({ id: 'n' + i, type: i % 3 === 0 ? 'sticky' : 'box', position: { x: (i % 30) * 260, y: Math.floor(i / 30) * 160 }, style: { width: 200, height: 100 }, data: { label: 'Elemento ' + i, desc: 'desc ' + i, color: '#bfdbfe', shape: 'round' } })), edges: [] }],
+}
+
 const results = []
 const check = (name, ok, detail = '') => {
   results.push(!!ok)
@@ -39,7 +44,7 @@ app.whenReady().then(async () => {
   await wait(1500)
   await ev(`window.flowFiles = { export: async (p) => { (window.__exports ||= []).push({ name: p.defaultName, enc: p.encoding, data: p.data }); return { path: 'sim' } } }; 0`)
 
-  const kinds = [['Imagen PNG', 'png', (b) => b.subarray(1, 4).toString() === 'PNG'], ['Imagen SVG', 'svg', (b) => b.subarray(0, 4).toString() === '<svg'], ['Documento PDF', 'pdf', (b) => b.subarray(0, 4).toString() === '%PDF']]
+  const kinds = [['Imagen PNG', 'png', (b) => b.subarray(1, 4).toString() === 'PNG'], ['Imagen SVG', 'svg', (b) => b.subarray(0, 4).toString() === '<svg'], ['Documento PDF', 'pdf', (b) => b.subarray(0, 4).toString() === '%PDF' && b.length < 15e6]]
   for (const [i, [label, ext, magic]] of kinds.entries()) {
     await ev(`[...document.querySelectorAll('.dropdown > button')].find(b => b.textContent.includes('Exportar')).click()`)
     await wait(200)
@@ -53,6 +58,32 @@ app.whenReady().then(async () => {
     check(`${label}: se genera un archivo .${ext} válido (${buf.length} bytes)`, exp && exp.name === `Eventos.${ext}` && buf.length > 500 && magic(buf), exp?.name)
   }
   check('sin errores de consola ni violaciones de CSP', errors.length === 0, errors.slice(0, 2).join(' | '))
+
+  // Exportar debe incluir TODO el tablero aunque esté fuera de pantalla y en modo ligero
+  await win.loadFile(index)
+  await wait(800)
+  await ev(`localStorage.setItem('flow:autosave', ${JSON.stringify(JSON.stringify(wide))}); localStorage.setItem('flow:lang', 'es'); 0`)
+  await win.loadFile(index)
+  await wait(2500)
+  await ev(`window.flowFiles = { export: async (p) => { window.__svg = p.data; window.__name = p.defaultName; return { path: 'sim' } } }; 0`)
+  const lod = await ev(`document.querySelectorAll('.lod').length`)
+  // Se acerca el zoom: casi todos los elementos quedan fuera de pantalla y React Flow deja de dibujarlos.
+  await ev(`(() => { const pane = document.querySelector('.react-flow__pane'); const r = pane.getBoundingClientRect(); for (let i = 0; i < 14; i++) pane.dispatchEvent(new WheelEvent('wheel', { deltaY: -400, ctrlKey: true, clientX: r.left + 40, clientY: r.top + 40, bubbles: true, cancelable: true })); return 0 })()`)
+  await wait(900)
+  const inDomBefore = await ev(`document.querySelectorAll('.react-flow__node').length`)
+  check(`con el zoom cerca solo se dibuja lo visible (${inDomBefore} de 300 elementos en el DOM)`, inDomBefore < 150, String(inDomBefore))
+  await ev(`[...document.querySelectorAll('.dropdown > button')].find(b => b.textContent.includes('Exportar')).click(); 0`)
+  await wait(200)
+  await ev(`[...document.querySelectorAll('.menu button')].find(b => b.textContent.includes('Imagen SVG')).click(); 0`)
+  for (let k = 0; k < 120; k++) { await wait(250); if (await ev('!!window.__svg')) break }
+  const svg = await ev('window.__svg || ""')
+  check(`al inicio el tablero completo está en modo ligero (${lod} elementos ligeros)`, lod > 50)
+  check('el SVG exportado incluye el PRIMER elemento con su texto', svg.includes('Elemento 0'))
+  check('el SVG exportado incluye el ÚLTIMO elemento (el más lejano) con su texto', svg.includes('Elemento 299'), 'longitud ' + svg.length)
+  check('el SVG exportado incluye las descripciones de las tarjetas', svg.includes('desc 297'))
+  const after = await ev(`document.querySelectorAll('.lod').length`)
+  const afterDom = await ev(`document.querySelectorAll('.react-flow__node').length`)
+  check(`tras exportar se vuelve a dibujar solo lo visible (${afterDom} elementos en el DOM)`, afterDom < 150, String(afterDom))
 
   const failed = results.filter((r) => !r).length
   console.log(`\n${results.length - failed}/${results.length} comprobaciones correctas`)

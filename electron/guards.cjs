@@ -48,6 +48,12 @@ function parseExportPayload(payload) {
   return { buffer, name, filters }
 }
 
+// Mensaje de diagnóstico enviado por la interfaz: solo texto, acotado.
+function parseLogPayload(payload) {
+  if (typeof payload !== 'string') throw new Error('Mensaje no válido')
+  return payload.slice(0, 4000)
+}
+
 function ensureExtension(file, ext) {
   return file.toLowerCase().endsWith(`.${ext}`) ? file : `${file}.${ext}`
 }
@@ -61,4 +67,4 @@ function isSafeExternalUrl(url) {
   }
 }
 
-module.exports = { MAX_BYTES, isTrustedUrl, PathGrants, parseSavePayload, parseExportPayload, ensureExtension, isSafeExternalUrl }
+module.exports = { MAX_BYTES, isTrustedUrl, PathGrants, parseSavePayload, parseExportPayload, parseLogPayload, ensureExtension, isSafeExternalUrl }

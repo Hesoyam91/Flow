@@ -4,24 +4,24 @@
     "defaultFileName": "diagram",
     "insert": "＋ Insert",
     "pen": "✎ Pen",
-    "penTip": "Draw freehand",
     "eraser": "⌫ Eraser",
-    "eraserTip": "Erase strokes",
     "search": "Search (Ctrl+F)",
     "filter": "◐ Filter",
     "export": "⤓ Export",
-    "themeToDay": "Switch to sunset",
-    "themeToNight": "Switch to night",
+    "themeToDay": "Switch to light theme",
+    "themeToNight": "Switch to night theme",
     "undo": "Undo (Ctrl+Z)",
     "redo": "Redo (Ctrl+Shift+Z)",
     "new": "New",
     "open": "Open",
     "save": "Save",
-    "language": "Language",
     "newBoard": "New board",
     "closeBoard": "Close board",
     "unnamedBoard": "Unnamed",
-    "hint": "Drag to select · Space or middle button to pan · Double-click: rename · Right-click: open note"
+    "hint": "Drag to select · Space or middle button to pan · Double-click: rename · Right-click: open note",
+    "tools": "🛠 Tools",
+    "templates": "▦ Templates",
+    "preferences": "⚙ Preferences"
   },
   "defaults": {
     "board": "Board {{n}}",
@@ -32,7 +32,9 @@
     "hexagon": "Process",
     "text": "Text",
     "sticky": "Note",
-    "section": "Section"
+    "section": "Section",
+    "column": "Column",
+    "card": "New card"
   },
   "menu": {
     "box": "Box",
@@ -46,7 +48,10 @@
     "allColors": "All colors",
     "exportPng": "PNG image",
     "exportSvg": "SVG image",
-    "exportPdf": "PDF document"
+    "exportPdf": "PDF document",
+    "pen": "Pen",
+    "eraser": "Eraser",
+    "column": "Column (board)"
   },
   "status": {
     "desktopOnlySave": "Saving is only available in the desktop app",
@@ -57,17 +62,28 @@
     "exported": "Exported",
     "exportError": "Export failed",
     "autosaveFull": "Autosave is full: save the file with Save",
-    "distributeMin": "Select at least 3 elements to distribute"
+    "distributeMin": "Select at least 3 elements to distribute",
+    "saveError": "Could not save the file"
   },
   "confirm": {
     "closeBoard": "Close \"{{name}}\"? Its content will be deleted.",
-    "newDoc": "Create a new diagram? Unsaved changes will be lost."
+    "newDoc": "Create a new diagram? Unsaved changes will be lost.",
+    "openDoc": "Open another file? It will replace your unsaved work."
   },
   "edge": {
     "title": "Connector",
     "dashed": "Dashed",
-    "path": { "straight": "Straight", "smoothstep": "Elbow", "bezier": "Curved" },
-    "arrow": { "none": "No arrowhead", "end": "Arrow at end", "start": "Arrow at start", "both": "Double arrow" }
+    "path": {
+      "straight": "Straight",
+      "smoothstep": "Elbow",
+      "bezier": "Curved"
+    },
+    "arrow": {
+      "none": "No arrowhead",
+      "end": "Arrow at end",
+      "start": "Arrow at start",
+      "both": "Double arrow"
+    }
   },
   "align": {
     "selected": "{{count}} selected",
@@ -124,7 +140,8 @@
       "quote": "Quote",
       "link": "Link (click again to remove it)",
       "image": "Insert image"
-    }
+    },
+    "expanded": "Expanded content for \"{{title}}\""
   },
   "nodes": {
     "untitled": "Untitled",
@@ -133,7 +150,10 @@
     "section": "Section",
     "note": "Note",
     "text": "Text",
-    "bodyPlaceholder": "Write here… (lists, tasks, bold)"
+    "bodyPlaceholder": "Write here… (lists, tasks, bold)",
+    "descPlaceholder": "Description…",
+    "column": "Column",
+    "addCard": "＋ Add card"
   },
   "shapes": {
     "rect": "Rectangle",
@@ -167,5 +187,97 @@
     "body": "Flow ran into an unexpected error. Your saved .flow files have not been modified.",
     "retry": "Retry",
     "reset": "Discard autosave and restart"
+  },
+  "templates": {
+    "title": "Templates",
+    "subtitle": "Pick a starting point. It opens in a new tab and you can change everything.",
+    "scrum": {
+      "name": "Scrum board",
+      "desc": "To Do, In Progress and Done. Drag cards between columns, like in Trello.",
+      "card1": "Define the backlog",
+      "card1Desc": "List and prioritize the tasks for the sprint.",
+      "card2": "Design the main screen",
+      "card2Desc": "Right-click a card to write all the details.",
+      "card3": "Review with the team",
+      "card4": "Build the first version",
+      "card4Desc": "Drag me to Done when it is ready.",
+      "card5": "Set up the project"
+    },
+    "flowchart": {
+      "name": "Flowchart",
+      "desc": "Start, steps and decisions to explain a process step by step.",
+      "start": "Start",
+      "step1": "First step",
+      "check": "Is it correct?",
+      "step2": "Next step",
+      "end": "End",
+      "fix": "Fix it",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "mindmap": {
+      "name": "Mind map",
+      "desc": "A central idea with branches to explore and organize your thoughts.",
+      "center": "Main idea",
+      "branch1": "Topic 1",
+      "branch2": "Topic 2",
+      "branch3": "Topic 3",
+      "branch4": "Topic 4",
+      "idea": "Idea"
+    },
+    "timeline": {
+      "name": "Timeline",
+      "desc": "Milestones in order, each with its date and what happens in it.",
+      "title": "Timeline",
+      "milestone": "Milestone {{n}}",
+      "when": "Stage {{n}}",
+      "what": "What happens in this stage."
+    },
+    "moodboard": {
+      "name": "Moodboard",
+      "desc": "Spaces for reference images, a color palette and keywords.",
+      "title": "Moodboard",
+      "inspiration": "Inspiration (right-click a frame to add the image)",
+      "palette": "Palette",
+      "keywords": "Keywords",
+      "word1": "Warm",
+      "word2": "Minimal",
+      "word3": "Natural"
+    }
+  },
+  "prefs": {
+    "title": "Preferences",
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "theme_light": "Light",
+    "theme_dark": "Night",
+    "language": "Language",
+    "lang_es": "Español",
+    "lang_en": "English",
+    "canvas": "Canvas",
+    "minimap": "Minimap",
+    "minimapHelp": "The bottom-right box with an overview of the board.",
+    "controls": "Zoom controls",
+    "controlsHelp": "The bottom-left buttons: zoom in, zoom out, fit and lock.",
+    "hint": "Instructions",
+    "hintHelp": "The help text at the bottom center.",
+    "grid": "Background dots",
+    "gridHelp": "The grid of dots on the canvas.",
+    "stars": "Stars",
+    "starsHelp": "The animated background of the night theme. Turn them off to use fewer resources.",
+    "snap": "Snap to grid",
+    "snapHelp": "Moved elements align to the dots on the canvas.",
+    "behavior": "Behavior",
+    "confirmExit": "Confirm on exit",
+    "confirmExitHelp": "Ask before closing if there are changes not saved to a file.",
+    "reset": "Reset to defaults"
+  },
+  "exit": {
+    "title": "Exit without saving?",
+    "body": "You have changes that are not saved to a file.",
+    "autosave": "If you exit, they will stay in this computer's autosave and come back when you reopen Flow, but they will not be in your .flow file.",
+    "cancel": "Cancel",
+    "discard": "Exit without saving",
+    "save": "Save and exit"
   }
 }

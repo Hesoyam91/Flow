@@ -129,3 +129,55 @@ describe('cleanDoc', () => {
     expect(out.edges[0].data).toMatchObject({ editing: false, path: 'smoothstep', arrow: 'end' })
   })
 })
+
+describe('tarjeta y ventana independientes', () => {
+  const sticky = (data) => normalizeDoc({ nodes: [{ id: 's', type: 'sticky', position: { x: 0, y: 0 }, style: { width: 200, height: 120 }, data }], edges: [] }).boards[0].nodes[0]
+
+  it('migra: la descripción de la tarjeta se copia UNA vez desde la nota antigua', () => {
+    const n = sticky({ label: 'Hito 1', note: '<p>Resumen corto de la tarjeta.</p><ul><li><p>Detalle</p></li></ul>' })
+    expect(n.data.desc).toBe('Resumen corto de la tarjeta. Detalle')
+    expect(n.data.note).toContain('Resumen corto de la tarjeta')
+  })
+
+  it('si ya hay descripción, no la pisa con la nota (son independientes)', () => {
+    const n = sticky({ label: 'Hito 1', desc: 'Resumen corto', note: '<p>Todo lo que va a pasar en el evento</p>' })
+    expect(n.data.desc).toBe('Resumen corto')
+    expect(n.data.note).toBe('<p>Todo lo que va a pasar en el evento</p>')
+  })
+
+  it('una descripción vacía explícita se respeta (no vuelve a copiarse de la nota)', () => {
+    expect(sticky({ label: 'A', desc: '', note: '<p>nota</p>' }).data.desc).toBe('')
+  })
+
+  it('el título de la ventana es independiente del de la tarjeta', () => {
+    const n = sticky({ label: 'Tarjeta', noteTitle: 'Título largo de la ventana', desc: '' })
+    expect(n.data.label).toBe('Tarjeta')
+    expect(n.data.noteTitle).toBe('Título largo de la ventana')
+  })
+
+  it('solo las notas adhesivas tienen descripción', () => {
+    const box = normalizeDoc({ nodes: [{ id: 'b', type: 'box', position: { x: 0, y: 0 }, data: { label: 'x', desc: 'no debería existir', note: '<p>a</p>' } }], edges: [] }).boards[0].nodes[0]
+    expect(box.data.desc).toBeUndefined()
+  })
+
+  it('limpia también el estado de edición de la descripción', () => {
+    const out = cleanDoc({ nodes: [{ ...box('a'), data: { label: 'a', editing: true, editingDesc: true } }], edges: [] })
+    expect(out.nodes[0].data).toMatchObject({ editing: false, editingDesc: false })
+  })
+
+  it('guarda las medidas iniciales para el renderizado solo de lo visible', () => {
+    const n = sticky({ label: 'x' })
+    expect(n.initialWidth).toBe(200)
+    expect(n.initialHeight).toBe(120)
+  })
+})
+
+describe('plainText', () => {
+  it('quita etiquetas, decodifica entidades y separa bloques', async () => {
+    const { plainText } = await import('../src/doc.js')
+    expect(plainText('<p>Uno &amp; dos</p><p>tres</p>')).toBe('Uno & dos tres')
+    expect(plainText('<ul><li>a</li><li>b</li></ul>')).toBe('a b')
+    expect(plainText('')).toBe('')
+    expect(plainText(null)).toBe('')
+  })
+})

@@ -92,7 +92,7 @@ async function launchApp({ port = 9333, root = path.join(__dirname, '..') } = {}
     }
   }
 
-  return { send, evaluate, waitFor, close, onEvent: (fn) => listeners.push(fn), wait }
+  return { send, evaluate, waitFor, close, onEvent: (fn) => listeners.push(fn), wait, pid: child.pid, port }
 }
 
 module.exports = { launchApp, wait }

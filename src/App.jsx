@@ -23,13 +23,19 @@ import Stars from './Stars.jsx'
 import { exportBoard } from './exportBoard.js'
 import logo from './assets/logo.svg'
 import { useTranslation } from 'react-i18next'
-import i18n, { LANGUAGES, setLanguage } from './i18n'
+import i18n from './i18n'
 import { PEN_COLORS, fileToImageData, imageSize, pickImage, stripHtml } from './utils.js'
 import { EDGE_DATA_DEFAULTS, cleanDoc, cleanNode, cleanEdge, defaultDoc, emptyDoc, normalizeDoc } from './doc.js'
 import { alignPositions } from './layout.js'
+import { COLUMN, columnHeight, columnWidth, dropCards, dropTarget, layoutColumns } from './kanban.js'
+import { instantiateTemplate } from './templates.js'
+import TemplateGallery from './TemplateGallery.jsx'
+import Preferences from './Preferences.jsx'
+import { loadPrefs, savePrefs } from './prefs.js'
 
 const STORAGE_KEY = 'flow:autosave'
 const THEME_KEY = 'flow:theme'
+const DIRTY_KEY = 'flow:dirty'
 const HISTORY_LIMIT = 100
 
 const EDGE_OPTIONS = { type: 'label' }
@@ -56,7 +62,7 @@ const ARROW_OPTIONS = [['none', '—'], ['end', '→'], ['start', '←'], ['both
 const ALIGN_OPTIONS = [['left', '⇤'], ['hcenter', '⇔'], ['right', '⇥'], ['top', '⤒'], ['vcenter', '⇕'], ['bottom', '⤓'], ['hdist', '⋯'], ['vdist', '⋮']]
 
 function Editor() {
-  const { t, i18n: i18 } = useTranslation()
+  const { t } = useTranslation()
   const colorName = (c) => t(`colors.${c.replace('#', '')}`, { defaultValue: c })
   const initial = useRef(loadInitial()).current
   const firstBoard = initial.boards.find((b) => b.id === initial.activeId)
@@ -74,7 +80,15 @@ function Editor() {
   const [query, setQuery] = useState('')
   const [colorFilter, setColorFilter] = useState(null)
   const [, setTick] = useState(0)
-  const { screenToFlowPosition, fitView } = useReactFlow()
+  const { screenToFlowPosition, fitView, getNodes } = useReactFlow()
+  const [exporting, setExporting] = useState(false)
+  const [templatesOpen, setTemplatesOpen] = useState(false)
+  const [prefsOpen, setPrefsOpen] = useState(false)
+  const [closePrompt, setClosePrompt] = useState(false)
+  const [prefs, setPrefs] = useState(() => loadPrefs())
+  useEffect(() => savePrefs(prefs), [prefs])
+  const [cardDrag, setCardDrag] = useState(null) // arrastre de tarjetas: { ids, over, index, height }
+  const [columnDragging, setColumnDragging] = useState(false)
   const wrapper = useRef(null)
   const searchRef = useRef(null)
   const matchIndex = useRef(0)
@@ -85,13 +99,12 @@ function Editor() {
     return () => clearTimeout(t)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ---- Tema: claro = atardecer, oscuro = noche ----
+  // ---- Tema: claro u oscuro (noche), ambos con los colores del logo ----
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'light')
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     localStorage.setItem(THEME_KEY, theme)
   }, [theme])
-  const toggleLanguage = () => setLanguage(LANGUAGES[(LANGUAGES.indexOf(i18.language) + 1) % LANGUAGES.length])
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
   const edgeColor = theme === 'dark' ? '#d5e0ff' : '#000000'
 
@@ -117,12 +130,23 @@ function Editor() {
 
   const snapshotOf = () => cleanDoc(latest.current)
 
+  // Cambios sin guardar en un archivo. Se marca en los mismos puntos que el historial y sobrevive a un reinicio,
+  // porque el autoguardado restaura el trabajo pero este sigue sin estar en un .flow.
+  const dirty = useRef(localStorage.getItem(DIRTY_KEY) === '1')
+  const setDirty = useCallback((value) => {
+    if (dirty.current === value) return
+    dirty.current = value
+    localStorage.setItem(DIRTY_KEY, value ? '1' : '0')
+    setTick((x) => x + 1)
+  }, [])
+
   const takeSnapshot = useCallback(() => {
+    setDirty(true)
     past.current.push(cleanDoc(latest.current))
     if (past.current.length > HISTORY_LIMIT) past.current.shift()
     future.current = []
     setTick((t) => t + 1)
-  }, [])
+  }, [setDirty])
 
   const restore = (doc) => {
     setNodes(doc.nodes)
@@ -144,7 +168,39 @@ function Editor() {
     restore(next)
   }
 
-  const actions = useMemo(() => ({ takeSnapshot }), [takeSnapshot])
+  // forceDetail: al exportar, los elementos se dibujan siempre con todo su detalle.
+  const addCard = useCallback(
+    (columnId) => {
+      takeSnapshot()
+      setNodes((nds) => {
+        const col = nds.find((n) => n.id === columnId)
+        if (!col) return nds
+        const width = columnWidth(col) - COLUMN.pad * 2
+        const card = {
+          id: crypto.randomUUID(),
+          type: 'sticky',
+          // Al final de la columna: el orden lo da la "y" y kanban.js la coloca en su sitio.
+          position: { x: col.position.x + COLUMN.pad, y: col.position.y + columnHeight(col) },
+          style: { width },
+          initialWidth: width,
+          initialHeight: 90,
+          selected: true,
+          data: { label: t('defaults.card'), desc: '', color: '#ffffff', note: '', columnId, editing: true },
+        }
+        return [...nds.map((n) => ({ ...n, selected: false })), card]
+      })
+    },
+    [setNodes, takeSnapshot, t],
+  )
+
+  const actions = useMemo(() => ({ takeSnapshot, forceDetail: exporting, addCard }), [takeSnapshot, exporting, addCard])
+
+  // Tableros tipo Trello: las tarjetas y la altura de las columnas se derivan del estado. Cubre arrastrar, borrar,
+  // escribir textos largos, mover columnas y deshacer; layoutColumns devuelve el mismo array si no hay nada que cambiar.
+  useEffect(() => {
+    const next = layoutColumns(nodes, cardDrag)
+    if (next !== nodes) setNodes(next)
+  }, [nodes, cardDrag, setNodes])
 
   // ---- Tableros (pestañas) ----
   // Los tableros inactivos viven en `store`; el activo vive en el estado de React Flow.
@@ -175,6 +231,7 @@ function Editor() {
   }
 
   const addBoard = () => {
+    setDirty(true)
     saveActive()
     const id = crypto.randomUUID()
     store.current[id] = { nodes: [], edges: [], past: [], future: [] }
@@ -187,6 +244,7 @@ function Editor() {
     if (boardMeta.length < 2) return
     const name = boardMeta.find((b) => b.id === id)?.name
     if (!window.confirm(t('confirm.closeBoard', { name }))) return
+    setDirty(true)
     if (id === activeId) {
       const idx = boardMeta.findIndex((b) => b.id === id)
       const next = boardMeta[idx + 1] ?? boardMeta[idx - 1]
@@ -196,7 +254,10 @@ function Editor() {
     setBoardMeta((m) => m.filter((b) => b.id !== id))
   }
 
-  const renameBoard = (id, name) => setBoardMeta((m) => m.map((b) => (b.id === id ? { ...b, name } : b)))
+  const renameBoard = (id, name) => {
+    setDirty(true)
+    setBoardMeta((m) => m.map((b) => (b.id === id ? { ...b, name } : b)))
+  }
 
   const collectBoards = () =>
     boardMeta.map((m) => ({
@@ -205,14 +266,18 @@ function Editor() {
     }))
 
   // ---- Persistencia ----
+  const writeAutosave = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, activeId, boards: collectBoards() }))
+    } catch {
+      // Cuota de almacenamiento local agotada (imágenes grandes): el archivo .flow sigue siendo la copia fiable.
+      flash(t('status.autosaveFull'))
+    }
+  }
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, activeId, boards: collectBoards() }))
-      } catch {
-        // Cuota de almacenamiento local agotada (imágenes grandes): el archivo .flow sigue siendo la copia fiable.
-        flash(t('status.autosaveFull'))
-      }
+      writeAutosave()
     }, 400)
     return () => clearTimeout(timer)
   }, [nodes, edges, boardMeta, activeId]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -231,20 +296,26 @@ function Editor() {
   }
 
   const save = async () => {
-    if (!window.flowFiles) return flash(t('status.desktopOnlySave'))
-    const res = await window.flowFiles.save(serialize(), filePath)
-    if (res) {
-      setFilePath(res.path)
-      flash(t('status.saved'))
+    if (!window.flowFiles) {
+      flash(t('status.desktopOnlySave'))
+      return false
     }
+    const res = await window.flowFiles.save(serialize(), filePath)
+    if (!res) return false
+    setFilePath(res.path)
+    setDirty(false)
+    flash(t('status.saved'))
+    return true
   }
 
   const open = async () => {
+    if (dirty.current && !window.confirm(t('confirm.openDoc'))) return
     const res = await window.flowFiles?.open()
     if (!res) return
     try {
       applyDoc(normalizeDoc(JSON.parse(res.content), docOpts()))
       setFilePath(res.path)
+      setDirty(false)
       flash(t('status.opened'))
     } catch {
       flash(t('status.invalidFile'))
@@ -252,23 +323,32 @@ function Editor() {
   }
 
   const newDoc = () => {
-    if (!window.confirm(t('confirm.newDoc'))) return
+    if (dirty.current && !window.confirm(t('confirm.newDoc'))) return
     applyDoc(emptyDoc(docOpts()))
     setFilePath(null)
+    setDirty(false)
   }
 
   // ---- Exportar ----
   const doExport = async (format) => {
     setNodes((nds) => nds.map((n) => ({ ...n, selected: false })))
     setEdges((eds) => eds.map((e) => ({ ...e, selected: false })))
-    await new Promise((r) => setTimeout(r, 150))
     flash(t('status.exporting'))
+    // Se dibuja TODO el tablero (no solo lo visible) y con detalle completo; después se vuelve al modo ligero.
+    setExporting(true)
     try {
+      for (let i = 0; i < 40; i++) {
+        await new Promise((r) => setTimeout(r, 150))
+        if (getNodes().every((nd) => nd.measured?.width)) break
+      }
+      await new Promise((r) => setTimeout(r, 250))
       const res = await exportBoard(format, { nodes: latest.current.nodes, name: activeName })
       flash(res.error || (res.cancelled ? '' : t('status.exported')))
     } catch (err) {
       console.error(err)
       flash(t('status.exportError'))
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -311,14 +391,15 @@ function Editor() {
       ellipse: { type: 'box', style: { width: 170, height: 90 }, data: boxData('ellipse', t('defaults.ellipse')) },
       hexagon: { type: 'box', style: { width: 170, height: 90 }, data: boxData('hexagon', t('defaults.hexagon')) },
       text: { type: 'text', style: { width: 200, height: 44 }, data: { label: t('defaults.text'), color: 'transparent', note: '', editing: true } },
-      sticky: { type: 'sticky', style: { width: 180, height: 140 }, data: { label: t('defaults.sticky'), color: '#fde68a', note: '', editing: true } },
+      sticky: { type: 'sticky', style: { width: 180, height: 140 }, data: { label: t('defaults.sticky'), desc: '', color: '#fde68a', note: '', editing: true } },
+      column: { type: 'column', zIndex: -1, dragHandle: '.column-header', style: { width: 300, height: COLUMN.minHeight }, data: { label: t('defaults.column'), color: '#bfdbfe', note: '', editing: true } },
       section: { type: 'section', zIndex: -1, style: { width: 380, height: 260 }, data: { label: t('defaults.section'), color: '#fed7aa', note: '', editing: true } },
       image: { type: 'image', style: imageStyle, data: { label: '', image, note: '' } },
     }
     takeSnapshot()
     setNodes((nds) => [
       ...nds.map((n) => ({ ...n, selected: false })),
-      { id: crypto.randomUUID(), position: { x: pos.x + jitter(), y: pos.y + jitter() }, ...presets[kind], selected: true },
+      { id: crypto.randomUUID(), position: { x: pos.x + jitter(), y: pos.y + jitter() }, ...presets[kind], initialWidth: presets[kind].style.width, initialHeight: presets[kind].style.height, selected: true },
     ])
   }
 
@@ -331,8 +412,35 @@ function Editor() {
     { icon: 'T', label: t('menu.text'), onSelect: () => addNode('text') },
     { icon: '🗒', label: t('menu.sticky'), onSelect: () => addNode('sticky') },
     { icon: '▦', label: t('menu.section'), onSelect: () => addNode('section') },
+    { icon: '▥', label: t('menu.column'), onSelect: () => addNode('column') },
     { icon: '🖼', label: t('menu.image'), onSelect: () => addNode('image') },
   ]
+
+  const toolItems = [
+    { icon: '✎', label: t('menu.pen'), onSelect: () => toggleTool('pen') },
+    { icon: '⌫', label: t('menu.eraser'), onSelect: () => toggleTool('eraser') },
+  ]
+
+  // ---- Plantillas: se abren en una pestaña nueva, salvo que el tablero actual esté vacío ----
+  const applyTemplate = (template) => {
+    setTemplatesOpen(false)
+    const { nodes: tplNodes, edges: tplEdges } = instantiateTemplate(template, t)
+    const name = t(`templates.${template.id}.name`)
+    if (!latest.current.nodes.length) {
+      takeSnapshot()
+      setNodes(tplNodes)
+      setEdges(tplEdges)
+      renameBoard(activeId, name)
+    } else {
+      setDirty(true)
+      saveActive()
+      const id = crypto.randomUUID()
+      store.current[id] = { nodes: tplNodes, edges: tplEdges, past: [], future: [] }
+      setBoardMeta((m) => [...m, { id, name }])
+      loadBoard(id)
+    }
+    setTimeout(() => fitView({ padding: 0.15, duration: 250 }), 350)
+  }
 
   const updateData = (id, patch) => {
     // Escribir (título o nota) cuenta como un solo paso de deshacer por sesión del editor.
@@ -363,7 +471,7 @@ function Editor() {
   }
 
   const startRename = (_, node) => {
-    if (node.type === 'draw' || node.type === 'section') return
+    if (node.type === 'draw' || node.type === 'section' || node.type === 'column') return
     setNodes((nds) => nds.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, editing: true } } : n)))
   }
 
@@ -381,7 +489,7 @@ function Editor() {
   const matchIds = useMemo(
     () =>
       q
-        ? nodes.filter((n) => n.type !== 'draw' && `${n.data.label || ''} ${stripHtml(n.data.note)} ${stripHtml(n.data.body)}`.toLowerCase().includes(q)).map((n) => n.id)
+        ? nodes.filter((n) => n.type !== 'draw' && `${n.data.label || ''} ${n.data.desc || ''} ${n.data.noteTitle || ''} ${stripHtml(n.data.note)} ${stripHtml(n.data.body)}`.toLowerCase().includes(q)).map((n) => n.id)
         : [],
     [nodes, q],
   )
@@ -390,7 +498,7 @@ function Editor() {
     if (!q && !colorFilter) return nodes
     const matchSet = new Set(matchIds)
     return nodes.map((n) => {
-      if (n.type === 'section') return q && matchSet.has(n.id) ? { ...n, className: 'match' } : n
+      if (n.type === 'section' || n.type === 'column') return q && matchSet.has(n.id) ? { ...n, className: 'match' } : n
       const dim = (q && !matchSet.has(n.id)) || (colorFilter && n.data.color !== colorFilter)
       if (dim) return { ...n, className: 'dim' }
       return q && matchSet.has(n.id) ? { ...n, className: 'match' } : n
@@ -398,7 +506,7 @@ function Editor() {
   }, [nodes, q, colorFilter, matchIds])
 
   const usedColors = useMemo(
-    () => [...new Set(nodes.filter((n) => n.type !== 'draw' && n.type !== 'section').map((n) => n.data.color).filter((c) => c && c !== 'transparent'))],
+    () => [...new Set(nodes.filter((n) => n.type !== 'draw' && n.type !== 'section' && n.type !== 'column').map((n) => n.data.color).filter((c) => c && c !== 'transparent'))],
     [nodes],
   )
 
@@ -423,7 +531,7 @@ function Editor() {
     takeSnapshot()
     setNodes((nds) => [
       ...nds,
-      { id: crypto.randomUUID(), type: 'draw', position, style: { width: w, height: h }, connectable: false, data: { points, w, h, size: penSize, color: penColor } },
+      { id: crypto.randomUUID(), type: 'draw', position, style: { width: w, height: h }, initialWidth: w, initialHeight: h, connectable: false, data: { points, w, h, size: penSize, color: penColor } },
     ])
   }
 
@@ -432,8 +540,29 @@ function Editor() {
   // ---- Secciones: mover una sección arrastra lo que tiene dentro ----
   const dragGroup = useRef(null)
 
-  const onNodeDragStart = (_, node) => {
+  // Empieza a arrastrarse una o varias notas: kanban.js las deja quietas y, si hay columnas, se elevan sobre las demás.
+  const beginCardDrag = (dragged) => {
+    if (dragged.some((n) => n.type === 'column')) setColumnDragging(true)
+    const hasColumns = latest.current.nodes.some((n) => n.type === 'column')
+    const ids = new Set(dragged.filter((n) => n.type === 'sticky').map((n) => n.id))
+    if (!hasColumns || !ids.size) return
+    setCardDrag({ ids, over: null, index: 0, height: 0 })
+    setNodes((nds) => nds.map((n) => (ids.has(n.id) ? { ...n, zIndex: 1000 } : n)))
+  }
+
+  // Al soltar, cada nota entra en la columna donde cayó o sale al lienzo si cayó fuera.
+  const endCardDrag = (dragged) => {
+    setColumnDragging(false)
+    if (!cardDrag) return
+    const positions = new Map(dragged.map((n) => [n.id, n.position]))
+    const { ids } = cardDrag
+    setCardDrag(null)
+    setNodes((nds) => dropCards(nds.map((n) => (positions.has(n.id) ? { ...n, position: positions.get(n.id) } : n)), ids))
+  }
+
+  const onNodeDragStart = (_, node, dragged = [node]) => {
     takeSnapshot()
+    beginCardDrag(dragged)
     if (node.type !== 'section') return
     const { w, h } = sizeOf(node)
     const members = latest.current.nodes.filter((n) => {
@@ -446,7 +575,14 @@ function Editor() {
     dragGroup.current = { start: { ...node.position }, members: new Map(members.map((n) => [n.id, { ...n.position }])) }
   }
 
-  const onNodeDrag = (_, node) => {
+  const onNodeDrag = (_, node, dragged = [node]) => {
+    // Vista previa al estilo Trello: se abre un hueco donde caería la tarjeta (solo al arrastrar una).
+    if (cardDrag && dragged.length === 1 && node.type === 'sticky') {
+      const target = dropTarget(latest.current.nodes, node)
+      const over = target?.over ?? null
+      const index = target?.index ?? 0
+      if (over !== cardDrag.over || index !== cardDrag.index) setCardDrag({ ...cardDrag, over, index, height: target?.height ?? 0 })
+    }
     const g = dragGroup.current
     if (!g || node.type !== 'section') return
     const dx = node.position.x - g.start.x
@@ -454,8 +590,9 @@ function Editor() {
     setNodes((nds) => nds.map((n) => (g.members.has(n.id) ? { ...n, position: { x: g.members.get(n.id).x + dx, y: g.members.get(n.id).y + dy } } : n)))
   }
 
-  const onNodeDragStop = () => {
+  const onNodeDragStop = (_, node, dragged = [node]) => {
     dragGroup.current = null
+    endCardDrag(dragged)
   }
 
   // ---- Conectores ----
@@ -496,7 +633,8 @@ function Editor() {
       ...n,
       id: idMap.get(n.id),
       position: { x: n.position.x + off, y: n.position.y + off },
-      data: { ...n.data, links: undefined },
+      // Si la columna se copió junto con la tarjeta, la copia va a la columna nueva.
+      data: { ...n.data, links: undefined, ...(idMap.has(n.data.columnId) ? { columnId: idMap.get(n.data.columnId) } : {}) },
       selected: true,
     }))
     const newEdges = cb.edges.map((e) => ({ ...e, id: crypto.randomUUID(), source: idMap.get(e.source), target: idMap.get(e.target) }))
@@ -516,7 +654,34 @@ function Editor() {
     setNodes((nds) => nds.map((n) => (pos.has(n.id) ? { ...n, position: pos.get(n.id) } : n)))
   }
 
+  // ---- Salir ----
+  const cancelExit = () => {
+    setClosePrompt(false)
+    window.flowFiles?.cancelClose?.()
+  }
+
+  const saveAndExit = async () => {
+    try {
+      if (await save()) window.flowFiles.confirmClose()
+    } catch (err) {
+      console.error(err)
+      flash(t('status.saveError'))
+    }
+  }
+
+  // El proceso principal pregunta antes de cerrar la ventana. La referencia evita volver a registrar el oyente.
+  const onCloseRequested = useRef(null)
+  onCloseRequested.current = () => {
+    window.flowFiles.ackClose()
+    writeAutosave()
+    if (dirty.current && prefs.confirmExit) setClosePrompt(true)
+    else window.flowFiles.confirmClose()
+  }
+  useEffect(() => window.flowFiles?.onCloseRequested?.(() => onCloseRequested.current()), [])
+
   // ---- Atajos de teclado y pegado ----
+  const modalOpen = !!editingId || templatesOpen || prefsOpen || closePrompt
+
   useEffect(() => {
     const onKey = (e) => {
       const mod = e.ctrlKey || e.metaKey
@@ -535,9 +700,12 @@ function Editor() {
       if (e.key === 'Escape') {
         setEditingId(null)
         setTool('select')
+        setTemplatesOpen(false)
+        setPrefsOpen(false)
+        if (closePrompt) cancelExit()
       }
       const typing = e.target.closest?.('input, textarea, select, [contenteditable="true"]')
-      if (!mod || typing || editingId) return
+      if (!mod || typing || modalOpen) return
       if (key === 'z') {
         e.preventDefault()
         e.shiftKey ? redo() : undo()
@@ -561,7 +729,7 @@ function Editor() {
     }
 
     const onPaste = async (e) => {
-      if (e.target.closest?.('input, textarea, select, [contenteditable="true"]') || editingId) return
+      if (e.target.closest?.('input, textarea, select, [contenteditable="true"]') || modalOpen) return
       const item = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith('image/'))
       if (item) {
         e.preventDefault()
@@ -593,10 +761,11 @@ function Editor() {
       <div className="app">
         <header className="topbar">
           <img className="logo" src={logo} alt="Flow" />
-          <span className="filename">{fileName}</span>
+          <span className="filename" title={fileName}>{fileName}{filePath && dirty.current && <span className="dirty-dot">•</span>}</span>
           <Dropdown label={t('app.insert')} items={insertItems} />
-          <button className={tool === 'pen' ? 'active' : ''} onClick={() => toggleTool('pen')} title={t('app.penTip')}>{t('app.pen')}</button>
-          <button className={tool === 'eraser' ? 'active' : ''} onClick={() => toggleTool('eraser')} title={t('app.eraserTip')}>{t('app.eraser')}</button>
+          <Dropdown label={tool === 'pen' ? t('app.pen') : tool === 'eraser' ? t('app.eraser') : t('app.tools')} items={toolItems} active={tool !== 'select'} />
+          <button className={templatesOpen ? 'active' : ''} onClick={() => setTemplatesOpen(true)}>{t('app.templates')}</button>
+          <button className={prefsOpen ? 'active' : ''} onClick={() => setPrefsOpen(true)}>{t('app.preferences')}</button>
           <div className="spacer" />
           {status && <span className="status">{status}</span>}
           <div className="search">
@@ -614,8 +783,7 @@ function Editor() {
           </div>
           <Dropdown label={colorFilter ? `◐ ${colorName(colorFilter)}` : t('app.filter')} items={filterItems} align="right" />
           <Dropdown label={t('app.export')} items={exportItems} align="right" />
-          <button onClick={toggleLanguage} title={t('app.language')}>🌐 {i18.language.toUpperCase()}</button>
-          <button onClick={toggleTheme} title={theme === 'dark' ? t('app.themeToDay') : t('app.themeToNight')}>{theme === 'dark' ? '🌇' : '🌙'}</button>
+          <button onClick={toggleTheme} title={theme === 'dark' ? t('app.themeToDay') : t('app.themeToNight')}>{theme === 'dark' ? '☀' : '🌙'}</button>
           <button onClick={undo} disabled={!past.current.length} title={t('app.undo')}>↶</button>
           <button onClick={redo} disabled={!future.current.length} title={t('app.redo')}>↷</button>
           <button onClick={newDoc}>{t('app.new')}</button>
@@ -656,8 +824,8 @@ function Editor() {
           <button className="tab-add" onClick={addBoard} title={t('app.newBoard')}>＋</button>
         </div>
 
-        <div className="canvas" ref={wrapper}>
-          <Stars />
+        <div className={`canvas ${columnDragging ? 'column-dragging' : ''}`} ref={wrapper}>
+          {prefs.stars && <Stars />}
           <ReactFlow
             nodes={displayNodes}
             edges={themedEdges}
@@ -676,7 +844,11 @@ function Editor() {
             onNodeDragStart={onNodeDragStart}
             onNodeDrag={onNodeDrag}
             onNodeDragStop={onNodeDragStop}
-            onSelectionDragStart={takeSnapshot}
+            onSelectionDragStart={(_, dragged) => {
+              takeSnapshot()
+              beginCardDrag(dragged)
+            }}
+            onSelectionDragStop={(_, dragged) => endCardDrag(dragged)}
             onBeforeDelete={async () => {
               takeSnapshot()
               return true
@@ -689,15 +861,18 @@ function Editor() {
             selectionMode={SelectionMode.Partial}
             panOnDrag={[1, 2]}
             minZoom={0.1}
+            onlyRenderVisibleElements={!exporting}
             proOptions={{ hideAttribution: true }}
             elevateNodesOnSelect={false}
             zoomOnDoubleClick={false}
             fitView
-            deleteKeyCode={editingId ? null : ['Delete', 'Backspace']}
+            deleteKeyCode={modalOpen ? null : ['Delete', 'Backspace']}
+            snapToGrid={prefs.snap}
+            snapGrid={[20, 20]}
           >
-            <Background gap={20} color={theme === 'dark' ? 'rgba(165,180,252,0.1)' : 'rgba(124,45,18,0.16)'} />
-            <Controls />
-            <MiniMap pannable zoomable nodeColor={(n) => (n.data?.color && n.data.color !== 'transparent' ? n.data.color : '#94a3b8')} />
+            {prefs.grid && <Background gap={20} color={theme === 'dark' ? 'rgba(165,180,252,0.1)' : 'rgba(49,46,129,0.16)'} />}
+            {prefs.controls && <Controls />}
+            {prefs.minimap && <MiniMap pannable zoomable nodeColor={(n) => (n.data?.color && n.data.color !== 'transparent' ? n.data.color : '#94a3b8')} />}
           </ReactFlow>
 
           {tool !== 'select' && (
@@ -756,10 +931,27 @@ function Editor() {
             )}
           </div>
 
-          <div className="hint">
-            {t('app.hint')}
-          </div>
+          {prefs.hint && <div className="hint">{t('app.hint')}</div>}
         </div>
+
+        {prefsOpen && <Preferences prefs={prefs} onChange={setPrefs} theme={theme} onTheme={setTheme} onClose={() => setPrefsOpen(false)} />}
+
+        {closePrompt && (
+          <div className="overlay">
+            <div className="confirm-window" role="alertdialog" aria-label={t('exit.title')}>
+              <h2>{t('exit.title')}</h2>
+              <p>{t('exit.body')}</p>
+              <p>{t('exit.autosave')}</p>
+              <div className="confirm-actions">
+                <button onClick={cancelExit}>{t('exit.cancel')}</button>
+                <button className="danger" onClick={() => window.flowFiles.confirmClose()}>{t('exit.discard')}</button>
+                <button className="primary" onClick={saveAndExit}>{t('exit.save')}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {templatesOpen && <TemplateGallery onPick={applyTemplate} onClose={() => setTemplatesOpen(false)} />}
 
         {editing && (
           <NoteEditor

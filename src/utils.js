@@ -48,7 +48,7 @@ export function readFileAsDataUrl(file) {
 }
 
 const MAX_IMAGE_INPUT = 15 * 1024 * 1024
-const MAX_IMAGE_SIDE = 1920
+const MAX_IMAGE_SIDE = 1280
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -59,7 +59,7 @@ function loadImage(src) {
   })
 }
 
-// Valida un archivo de imagen y lo reduce (máx. 1920 px, WebP) para que los diagramas no pesen demasiado.
+// Valida un archivo de imagen y lo reduce (máx. 1280 px, WebP) para que los diagramas no pesen demasiado.
 // Los GIF y SVG se conservan tal cual (animación / vector).
 export async function fileToImageData(file) {
   if (!file || !file.type.startsWith('image/')) throw new Error(i18n.t('errors.notImage'))
@@ -74,7 +74,7 @@ export async function fileToImageData(file) {
   canvas.width = Math.max(1, Math.round(img.naturalWidth * scale))
   canvas.height = Math.max(1, Math.round(img.naturalHeight * scale))
   canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
-  const compressed = canvas.toDataURL('image/webp', 0.88)
+  const compressed = canvas.toDataURL('image/webp', 0.85)
   return compressed.length < original.length ? compressed : original
 }
 

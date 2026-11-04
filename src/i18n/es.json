@@ -4,24 +4,24 @@
     "defaultFileName": "diagrama",
     "insert": "＋ Insertar",
     "pen": "✎ Lápiz",
-    "penTip": "Dibujar a mano",
     "eraser": "⌫ Borrador",
-    "eraserTip": "Borrar trazos",
     "search": "Buscar (Ctrl+F)",
     "filter": "◐ Filtrar",
     "export": "⤓ Exportar",
-    "themeToDay": "Cambiar a atardecer",
-    "themeToNight": "Cambiar a noche",
+    "themeToDay": "Cambiar a tema claro",
+    "themeToNight": "Cambiar a tema noche",
     "undo": "Deshacer (Ctrl+Z)",
     "redo": "Rehacer (Ctrl+Shift+Z)",
     "new": "Nuevo",
     "open": "Abrir",
     "save": "Guardar",
-    "language": "Idioma",
     "newBoard": "Nuevo tablero",
     "closeBoard": "Cerrar tablero",
     "unnamedBoard": "Sin nombre",
-    "hint": "Arrastra para seleccionar · Espacio o botón central para mover · Doble click: renombrar · Click derecho: abrir nota"
+    "hint": "Arrastra para seleccionar · Espacio o botón central para mover · Doble click: renombrar · Click derecho: abrir nota",
+    "tools": "🛠 Herramientas",
+    "templates": "▦ Plantillas",
+    "preferences": "⚙ Preferencias"
   },
   "defaults": {
     "board": "Tablero {{n}}",
@@ -32,7 +32,9 @@
     "hexagon": "Proceso",
     "text": "Texto",
     "sticky": "Nota",
-    "section": "Sección"
+    "section": "Sección",
+    "column": "Columna",
+    "card": "Nueva tarjeta"
   },
   "menu": {
     "box": "Caja",
@@ -46,7 +48,10 @@
     "allColors": "Todos los colores",
     "exportPng": "Imagen PNG",
     "exportSvg": "Imagen SVG",
-    "exportPdf": "Documento PDF"
+    "exportPdf": "Documento PDF",
+    "pen": "Lápiz",
+    "eraser": "Borrador",
+    "column": "Columna (tablero)"
   },
   "status": {
     "desktopOnlySave": "Guardado solo disponible en la app de escritorio",
@@ -57,17 +62,28 @@
     "exported": "Exportado",
     "exportError": "Error al exportar",
     "autosaveFull": "Autoguardado lleno: guarda el archivo con Guardar",
-    "distributeMin": "Selecciona al menos 3 elementos para distribuir"
+    "distributeMin": "Selecciona al menos 3 elementos para distribuir",
+    "saveError": "No se pudo guardar el archivo"
   },
   "confirm": {
     "closeBoard": "¿Cerrar \"{{name}}\"? Se eliminará su contenido.",
-    "newDoc": "¿Crear un diagrama nuevo? Se perderán los cambios no guardados."
+    "newDoc": "¿Crear un diagrama nuevo? Se perderán los cambios no guardados.",
+    "openDoc": "¿Abrir otro archivo? Se reemplazará lo que tienes sin guardar."
   },
   "edge": {
     "title": "Conector",
     "dashed": "Punteada",
-    "path": { "straight": "Recta", "smoothstep": "Ángulo", "bezier": "Curva" },
-    "arrow": { "none": "Sin punta", "end": "Flecha al final", "start": "Flecha al inicio", "both": "Flecha doble" }
+    "path": {
+      "straight": "Recta",
+      "smoothstep": "Ángulo",
+      "bezier": "Curva"
+    },
+    "arrow": {
+      "none": "Sin punta",
+      "end": "Flecha al final",
+      "start": "Flecha al inicio",
+      "both": "Flecha doble"
+    }
   },
   "align": {
     "selected": "{{count}} seleccionados",
@@ -124,7 +140,8 @@
       "quote": "Cita",
       "link": "Enlace (clic de nuevo para quitarlo)",
       "image": "Insertar imagen"
-    }
+    },
+    "expanded": "Contenido ampliado de \"{{title}}\""
   },
   "nodes": {
     "untitled": "Sin título",
@@ -133,7 +150,10 @@
     "section": "Sección",
     "note": "Nota",
     "text": "Texto",
-    "bodyPlaceholder": "Escribe aquí… (listas, tareas, negritas)"
+    "bodyPlaceholder": "Escribe aquí… (listas, tareas, negritas)",
+    "descPlaceholder": "Descripción…",
+    "column": "Columna",
+    "addCard": "＋ Añadir tarjeta"
   },
   "shapes": {
     "rect": "Rectángulo",
@@ -167,5 +187,97 @@
     "body": "Flow encontró un error inesperado. Tus archivos .flow guardados no se han modificado.",
     "retry": "Reintentar",
     "reset": "Descartar autoguardado y reiniciar"
+  },
+  "templates": {
+    "title": "Plantillas",
+    "subtitle": "Elige un punto de partida. Se abre en una pestaña nueva y puedes cambiar todo.",
+    "scrum": {
+      "name": "Tablero Scrum",
+      "desc": "To Do, In Progress y Done. Arrastra las tarjetas entre columnas, como en Trello.",
+      "card1": "Definir el backlog",
+      "card1Desc": "Listar y priorizar las tareas del sprint.",
+      "card2": "Diseñar la pantalla principal",
+      "card2Desc": "Clic derecho en una tarjeta para escribir todo el detalle.",
+      "card3": "Revisar con el equipo",
+      "card4": "Construir la primera versión",
+      "card4Desc": "Arrástrame a Done cuando esté lista.",
+      "card5": "Preparar el proyecto"
+    },
+    "flowchart": {
+      "name": "Diagrama de flujo",
+      "desc": "Inicio, procesos y decisiones para explicar un proceso paso a paso.",
+      "start": "Inicio",
+      "step1": "Primer paso",
+      "check": "¿Está correcto?",
+      "step2": "Siguiente paso",
+      "end": "Fin",
+      "fix": "Corregir",
+      "yes": "Sí",
+      "no": "No"
+    },
+    "mindmap": {
+      "name": "Mapa mental",
+      "desc": "Una idea central con ramas para explorar y ordenar lo que tienes en la cabeza.",
+      "center": "Idea principal",
+      "branch1": "Tema 1",
+      "branch2": "Tema 2",
+      "branch3": "Tema 3",
+      "branch4": "Tema 4",
+      "idea": "Idea"
+    },
+    "timeline": {
+      "name": "Línea de tiempo",
+      "desc": "Hitos en orden, cada uno con su fecha y lo que ocurre en él.",
+      "title": "Línea de tiempo",
+      "milestone": "Hito {{n}}",
+      "when": "Etapa {{n}}",
+      "what": "Qué ocurre en esta etapa."
+    },
+    "moodboard": {
+      "name": "Moodboard",
+      "desc": "Espacios para imágenes de referencia, paleta de colores y palabras clave.",
+      "title": "Moodboard",
+      "inspiration": "Inspiración (clic derecho en un recuadro para añadir la imagen)",
+      "palette": "Paleta",
+      "keywords": "Palabras clave",
+      "word1": "Cálido",
+      "word2": "Minimalista",
+      "word3": "Natural"
+    }
+  },
+  "prefs": {
+    "title": "Preferencias",
+    "appearance": "Apariencia",
+    "theme": "Tema",
+    "theme_light": "Claro",
+    "theme_dark": "Noche",
+    "language": "Idioma",
+    "lang_es": "Español",
+    "lang_en": "English",
+    "canvas": "Lienzo",
+    "minimap": "Minimapa",
+    "minimapHelp": "El recuadro de abajo a la derecha con la vista general del tablero.",
+    "controls": "Controles de zoom",
+    "controlsHelp": "Los botones de abajo a la izquierda: acercar, alejar, encuadrar y bloquear.",
+    "hint": "Instrucciones",
+    "hintHelp": "El texto de ayuda abajo en el centro.",
+    "grid": "Puntos de fondo",
+    "gridHelp": "La cuadrícula de puntos del lienzo.",
+    "stars": "Estrellas",
+    "starsHelp": "El fondo animado del tema noche. Desactívalas para gastar menos recursos.",
+    "snap": "Ajustar a la cuadrícula",
+    "snapHelp": "Al mover un elemento, se alinea a los puntos del lienzo.",
+    "behavior": "Comportamiento",
+    "confirmExit": "Confirmar al salir",
+    "confirmExitHelp": "Preguntar antes de cerrar si hay cambios sin guardar en un archivo.",
+    "reset": "Restablecer valores"
+  },
+  "exit": {
+    "title": "¿Salir sin guardar?",
+    "body": "Tienes cambios que no están guardados en un archivo.",
+    "autosave": "Si sales, seguirán en el autoguardado de este equipo y los verás al volver a abrir Flow, pero no en tu archivo .flow.",
+    "cancel": "Cancelar",
+    "discard": "Salir sin guardar",
+    "save": "Guardar y salir"
   }
 }
